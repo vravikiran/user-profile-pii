@@ -1,0 +1,31 @@
+-- user_profile_mgmt_db.user_profile definition
+
+CREATE TABLE `user_profile` (
+  `mobileno_hash` varchar(255) NOT NULL,
+  `mobileno` varchar(255) NOT NULL,
+  `full_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `pan_number` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `user_image_url` varchar(255) DEFAULT NULL,
+  `kyc_id` int DEFAULT NULL,
+  `bank_acc_details_id` int DEFAULT NULL,
+  `created_date` date NOT NULL,
+  `updated_date` date NOT NULL,
+  `date_of_birth` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `role_id` int DEFAULT NULL,
+  `aadhar_verified` tinyint(1) DEFAULT '0',
+  `bank_details_verified` tinyint(1) DEFAULT '0',
+  `email_hash` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `panno_hash` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  PRIMARY KEY (`mobileno_hash`),
+  UNIQUE KEY `user_profile_unique` (`mobileno_hash`),
+  UNIQUE KEY `user_profile_unique_1` (`email`),
+  UNIQUE KEY `user_profile_unique_3` (`mobileno_hash`,`email`),
+  UNIQUE KEY `user_profile_unique_2` (`mobileno_hash`,`pan_number`,`email`),
+  KEY `user_profile_user_bank_account_details_FK_1` (`bank_acc_details_id`),
+  KEY `user_profile_user_kyc_details_FK` (`kyc_id`),
+  KEY `user_profile_role_FK` (`role_id`),
+  CONSTRAINT `user_profile_role_FK` FOREIGN KEY (`role_id`) REFERENCES `role` (`role_id`),
+  CONSTRAINT `user_profile_user_bank_account_details_FK` FOREIGN KEY (`bank_acc_details_id`) REFERENCES `user_bank_account_details` (`bank_acc_details_id`),
+  CONSTRAINT `user_profile_user_kyc_details_FK` FOREIGN KEY (`kyc_id`) REFERENCES `user_kyc_details` (`kyc_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

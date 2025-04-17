@@ -51,3 +51,6 @@
 - Create a MySQL database
 - Execute the provided SQL scripts
 - Update the datasource related attributes in application.properties file
+### API Documentation
+- Run the application and access the below url to view the API documentation:
+    - http://localhost:8080/swagger-ui/index.html

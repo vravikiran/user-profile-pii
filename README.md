@@ -20,6 +20,5 @@
 -  login to AWS console [https://signin.aws.amazon.com/signin]
 -  Create a AWS KMS Symmetric key. Symmetric key is the one which is used to encrypt and decrypt PII data
 -  Naivgate to KMS and create a symmetric customer managed key using the below steps:
-    - 
 
   

@@ -46,3 +46,8 @@
 - "mtb-profile-images" to store profile images of users.
 - restrict public access to s3 buckets.
 - provide access for above buckets to IAM users who have access to the application.
+
+### Create database tables
+- Create a MySQL database
+- Execute the provided SQL scripts
+- Update the datasource related attributes in application.properties file

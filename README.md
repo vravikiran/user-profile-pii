@@ -10,6 +10,7 @@
 - Spring Boot
 - MySQL
 - AWS KMS
+- Amazon S3
 - Spring Data JPA
 - AWS CLI
 - Maven

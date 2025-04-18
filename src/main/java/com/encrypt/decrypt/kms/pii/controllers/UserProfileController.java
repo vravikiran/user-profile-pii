@@ -27,7 +27,14 @@ import com.encrypt.decrypt.kms.pii.exceptions.InvalidKycDetailsException;
 import com.encrypt.decrypt.kms.pii.exceptions.UserNotFoundException;
 import com.encrypt.decrypt.kms.pii.services.FileService;
 import com.encrypt.decrypt.kms.pii.services.UserProfileService;
+import com.encrypt.decrypt.kms.pii.util.Constants;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(description = "Creates/updates user profiles, store kyc details and bank account details of users", name = "User Profile Management")
 @Controller
 @RequestMapping("/userprofile")
 public class UserProfileController {
@@ -36,26 +43,30 @@ public class UserProfileController {
 	UserProfileService userProfileService;
 	@Autowired
 	FileService fileService;
-	private static final String profileBucket = "mtb-profile-images";
-	private static final String kycBucket = "mtb-kyc-images";
 
+	@Operation(method = "POST", description = "Creates a customer user profile")
 	@PostMapping
 	public ResponseEntity<UserProfile> createUserProfile(@RequestBody UserProfile userProfile)
 			throws DuplicateUserException, Exception {
 		logger.info("creating user profile started :: ");
-		UserProfile createdUserProfile = userProfileService.createUserProfile(userProfile,false);
+		UserProfile createdUserProfile = userProfileService.createUserProfile(userProfile, false);
 		logger.info("creation of user profile successful");
 		return ResponseEntity.ok(createdUserProfile);
 	}
-	
+
+	@Operation(method = "POST", description = "Creates an admin user profile")
 	@PostMapping("/admin")
-	public ResponseEntity<UserProfile> createAdminUser(@RequestBody UserProfile userProfile) throws DuplicateUserException, Exception {
+	public ResponseEntity<UserProfile> createAdminUser(@RequestBody UserProfile userProfile)
+			throws DuplicateUserException, Exception {
 		logger.info("creating Admin user profile started :: ");
-		userProfileService.createUserProfile(userProfile,true);
+		userProfileService.createUserProfile(userProfile, true);
 		logger.info("creation of Admin user profile successful");
 		return ResponseEntity.ok(userProfile);
 	}
 
+	@Operation(method = "GET", description = "Fetches user profile based on mobile number")
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "User profile exists and returns user profile"),
+			@ApiResponse(responseCode = "404", description = "User profile with given mobile number doesn't exists") })
 	@GetMapping
 	public ResponseEntity<UserProfile> getUserProfile(@RequestParam long mobileno) throws UserNotFoundException {
 		logger.info("fetching user profile with mobile number :: " + mobileno);
@@ -64,6 +75,11 @@ public class UserProfileController {
 		return ResponseEntity.ok(userProfile);
 	}
 
+	@Operation(method = "PATCH", description = "Updates user profile")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Updates user profile, provided valid columns of a user profile"),
+			@ApiResponse(responseCode = "422", description = "throws an exception if a user profile already exists with provided mobile number, email or pan number. Provides appropriate error message"),
+			@ApiResponse(responseCode = "404", description = "User profile with given mobile number doesn't exists") })
 	@PatchMapping("/update")
 	public ResponseEntity<String> updateUserProfile(@RequestBody Map<String, String> valuesToUpdate,
 			@RequestParam long mobileNo) throws UserNotFoundException, DuplicateUserException {
@@ -73,45 +89,54 @@ public class UserProfileController {
 		return ResponseEntity.ok("user profile updated successfully");
 	}
 
-	@PostMapping("/verify/bankdetails")
+	@Operation(method = "POST", description = "Adds the bank details to user profile")
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "Adds the bank account details to user profile"),
+			@ApiResponse(responseCode = "404", description = "User profile with given mobile number doesn't exists"),
+			@ApiResponse(responseCode = "400", description = "The provided bank account details are incorrect") })
+	@PostMapping("/bankdetails")
 	public ResponseEntity<String> addAccountDetailsToProfile(@RequestParam long mobileno,
 			@RequestBody BankAccountDetails bankAccountDetails)
 			throws UserNotFoundException, InvalidBankDetailsException {
-		logger.info("verification of bank details and adding to user profile with mobile number :: " + mobileno
-				+ " started");
+		logger.info("Addition of bank account details to user profile with mobile number :: " + mobileno + " started");
 		userProfileService.addBankAccDetailsToProfile(mobileno, bankAccountDetails);
-		logger.info(
-				"verification of bank details completed successfully and added to user profile with mobile number ::"
-						+ mobileno);
-		return ResponseEntity.ok("account details verified successfully");
+		logger.info("Addition of bank details completed successfully to user profile with mobile number ::" + mobileno);
+		return ResponseEntity.ok("account details added successfully to user profile");
 	}
 
-	@PostMapping("/verify/kyc")
+	@Operation(method = "POST", description = "Adds kyc details to user profile")
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "Adds kyc details to user profile"),
+			@ApiResponse(responseCode = "404", description = "User profile with given mobile number doesn't exists"),
+			@ApiResponse(responseCode = "400", description = "The provided kyc details are incorrect") })
+	@PostMapping("/kyc")
 	public ResponseEntity<String> addKycDetailsToProfile(@RequestParam long mobileno,
 			@RequestBody KycDetails kycDetails) throws UserNotFoundException, InvalidKycDetailsException {
-		logger.info("kyc verification started and adding kyc details to user profile with mobile number :: " + mobileno
-				+ " started");
+		logger.info("adding kyc details to user profile with mobile number :: " + mobileno + " started");
 		userProfileService.verifyAndAddKycDetails(mobileno, kycDetails);
-		logger.info(
-				"kyc verification completed successfully and added to user profile with mobile number :: " + mobileno);
-		return ResponseEntity.ok("kyc details verified successfully");
+		logger.info("kyc details successfully added to user profile with mobile number :: " + mobileno);
+		return ResponseEntity.ok("kyc details added successfully to user profile");
 	}
 
+	@Operation(method = "POST", description = "Uploads profile image/picutres of user and updates the same in user profile")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Image uploaded successfully and updated the same in user profile"),
+			@ApiResponse(responseCode = "404", description = "User profile with given mobile number doesn't exists") })
 	@PostMapping(path = "/image/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<String> uploadProfileImage(@RequestPart("photo") MultipartFile file,
-			@RequestParam long mobileno)
-			throws IOException, UserNotFoundException {
+			@RequestParam long mobileno) throws IOException, UserNotFoundException {
 		logger.info("uploading profile image for user profile with mobile number :: " + mobileno);
-		String url = fileService.uploadProfileImage(file, mobileno, profileBucket);
+		String url = fileService.uploadProfileImage(file, mobileno, Constants.PROFILE_BUCKET);
 		logger.info("profile image uploaded successfully for user profile");
 		return ResponseEntity.ok(url);
 	}
 
+	@Operation(method = "POST", description = "Uploads images related to kyc of user and returns the s3 URI")
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "Kyc image uploaded successfully"),
+			@ApiResponse(responseCode = "404", description = "User profile with given mobile number doesn't exists") })
 	@PostMapping(path = "/kycimage/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<String> uploadKycImage(@RequestPart("photo") MultipartFile file, @RequestParam long mobileno)
 			throws IOException, UserNotFoundException {
 		logger.info("uploading kyc image for user profile with mobile number :: " + mobileno);
-		String url = fileService.uploadKycImage(file, mobileno, kycBucket);
+		String url = fileService.uploadKycImage(file, mobileno, Constants.KYC_BUCKET);
 		logger.info("kyc image uploaded successfully for user profile");
 		return ResponseEntity.ok(url);
 	}

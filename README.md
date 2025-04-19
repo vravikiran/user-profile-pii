@@ -6,7 +6,7 @@
 - Saves User profile images, KYC documents in Amazon S3 bucket
 - Authenticates and authorises users using otp sent to mobile number or email
 - The generated OTP are stored in redis cache to authenticate and authorize the users
-- Implementation of email service is done using SMTP server hosted in AWS
+- Implementation of email service is done using SMTP server hosted in AWS and Spring email 
 - Implementation of sending otp to mobile number is done using Twilio API 
 
 ### Technologies
@@ -18,7 +18,7 @@
 - Spring Data JPA
 - AWS CLI
 - Maven
-- Amazon SES
+- Spring email
 - Twilio
 
 ### Creating an AWS KMS Key

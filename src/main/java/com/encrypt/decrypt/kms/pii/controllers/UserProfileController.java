@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.encrypt.decrypt.kms.pii.entities.BankAccountDetails;
 import com.encrypt.decrypt.kms.pii.entities.KycDetails;
+import com.encrypt.decrypt.kms.pii.entities.UserDto;
 import com.encrypt.decrypt.kms.pii.entities.UserProfile;
 import com.encrypt.decrypt.kms.pii.exceptions.DuplicateUserException;
 import com.encrypt.decrypt.kms.pii.exceptions.InvalidBankDetailsException;
@@ -30,6 +32,9 @@ import com.encrypt.decrypt.kms.pii.services.UserProfileService;
 import com.encrypt.decrypt.kms.pii.util.Constants;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -46,22 +51,26 @@ public class UserProfileController {
 
 	@Operation(method = "POST", description = "Creates a customer user profile")
 	@PostMapping
-	public ResponseEntity<UserProfile> createUserProfile(@RequestBody UserProfile userProfile)
+	public ResponseEntity<UserProfile> createUserProfile(@RequestBody UserDto userDto)
 			throws DuplicateUserException, Exception {
 		logger.info("creating user profile started :: ");
-		UserProfile createdUserProfile = userProfileService.createUserProfile(userProfile, false);
+		UserProfile createdUserProfile = userProfileService.createUserProfile(userDto, false);
 		logger.info("creation of user profile successful");
 		return ResponseEntity.ok(createdUserProfile);
 	}
 
 	@Operation(method = "POST", description = "Creates an admin user profile")
+	@ApiResponses(@ApiResponse(responseCode = "200", description = "Admin user created successfully"))
+	@Parameters({ @Parameter(in = ParameterIn.HEADER, name = "Authorization", required = true),
+			@Parameter(in = ParameterIn.HEADER, name = "TOKEN_TYPE", required = true) })
 	@PostMapping("/admin")
-	public ResponseEntity<UserProfile> createAdminUser(@RequestBody UserProfile userProfile)
+	@PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN')")
+	public ResponseEntity<UserProfile> createAdminUser(@RequestBody UserDto userDto)
 			throws DuplicateUserException, Exception {
 		logger.info("creating Admin user profile started :: ");
-		userProfileService.createUserProfile(userProfile, true);
+		UserProfile createdUserProfile = userProfileService.createUserProfile(userDto, true);
 		logger.info("creation of Admin user profile successful");
-		return ResponseEntity.ok(userProfile);
+		return ResponseEntity.ok(createdUserProfile);
 	}
 
 	@Operation(method = "GET", description = "Fetches user profile based on mobile number")

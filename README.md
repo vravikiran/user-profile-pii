@@ -38,6 +38,9 @@
     - "spring.mail.host" - SMTP Server
     - "spring.mail.username" - SMTP user name
     - "spring.mail.password" - SMTP password
+  - Install redis server in local environment as specified in [https://redis.io/docs/latest/operate/oss_and_stack/install/archive/install-redis/]
+  - start redis server from terminal using the command redis-server
+  - update redis host and port in application.properties file
 
 ### Creating an AWS KMS Key
 -  KMS is a service provided by AWS to encrypt and decrypt PII data.
